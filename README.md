@@ -38,10 +38,28 @@
 
 이 콜백 메소드에서 실제 게임을 위한 로직을 구현하는 방식으로 설계한다.
 
+```c
+play(draw) {
+    if (isplaying || typeof draw !== "function") return;
+    isplaying = true;
+    callback = draw;
+    requestAnimationFrame(loop);
+  }
+```
+
 Game 객체는 게임에 필요한 리소스를 다운받거나 스토리지에 저장하고 관리하는 기능을 내포한다.
 
-게임 전반에 걸친 에러와 예외처리를 담당하는 기능을 내포한다.
+```c
+save(key, data) {
+    Storage.localStorage(key, data);
+  }
 
+  load(key) {
+    return Storage.localStorage(key);
+  }
+```
+
+게임 전반에 걸친 에러와 예외처리를 담당하는 기능을 내포한다.
 
 
 ## 게임 화면 표현
@@ -86,6 +104,10 @@ dom 조작을 이요할 데이터
   게임의 특성상 다음 페이지로 이동할때는 history를 남기지 않기 위해서 location.replace를 이용할 것이다. 
   
   router에서는 브라우저의 url 값을 확인하고 path를 추출하고 이 path를 이용하여 미리 저정된 Component 함수를 얻어와서 호출하여 root 노드에 삽입하도록 구현했다. 
+  
+  ```c
+  const path = location.hash.slice(1).toLowerCase() || "/";
+  ```
 
   현 게임 특성상 path parameter를 받도록 구현하지는 않았으며 단순히 path 값만을 파싱하고 라우팅 하도록 하였다.
 
@@ -95,6 +117,14 @@ dom 조작을 이요할 데이터
   리턴 값으로 HTML 테그 스트링을 리턴하며 이 string을 root에 innerHTML로 삽입한다.
   
   이 객체에는 onLoad라는 메소드가 존재하며 innerHTML로 html이 삽입된 후에 호출된다.
+  
+  ```c
+  document.getElementById("root").innerHTML = foundRouter
+    ? foundRouter.component()
+    : "Page Not Found!";
+    
+  foundRouter.component.onLoad();
+  ```
   
   따라서 화면이 그려진 후에 작업할 로직을 추가할수 있다. 이는 dom이 생성되기 전에 dom에 접근하려는 시도를 제거하여
 
@@ -126,7 +156,7 @@ dom 조작을 이요할 데이터
   남은시간이 성공 시간을 초과하면 점수를 -1하고 다음 단어 표시를 위해 currentIndex 값을 +1 시킨다.
 
 
-  ##### 남은시간 표시 추가 기능
+  #### 남은시간 표시 추가 기능
 
   문제 단어 하단에 underline이 생성되는데 이 라인은 시간이 지남에 따라 서서히 줄어 들도록 구현하였다.
   
@@ -140,9 +170,9 @@ dom 조작을 이요할 데이터
 
   #### 정답 로직
 
-  <Input> 값이 입력되고 엔터(keyCode : 13)을 확인하면 그 값을 메모리에 저장한다.
+  <Input> 값이 입력되고 엔터(keyCode : 13)을 확인하면 그 값과 현재 표시되는 값을 비교하고 정답여부를 메모리에 저장한다.
 
-  저장된 데이터는 play() 호출될 때, 현재 표시되는 값과 메모리에 입력된 값을 비교해서 정답 여부를 확인한다.
+  저장된 데이터는 play() 호출될 때, 정답을 확인하고 다음 단어를 표시할지 여부를 판단한다.
 
 
 ## 테스트
